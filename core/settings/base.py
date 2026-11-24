@@ -81,7 +81,16 @@ TEMPLATES = [
 
 WSGI_APPLICATION = 'core.wsgi.application'
 
-
+DATABASES = {
+    "default": {
+        "ENGINE": "django.db.backends.postgresql",
+        "NAME": os.environ.get("POSTGRES_DB", "app_db"),
+        "USER": os.environ.get("POSTGRES_USER", "app_user"),
+        "PASSWORD": os.environ.get("POSTGRES_PASSWORD", "app_password"),
+        "HOST": os.environ.get("POSTGRES_HOST", "db"),
+        "PORT": os.environ.get("POSTGRES_PORT", "5432"),
+    }
+}
 
 AUTH_PASSWORD_VALIDATORS = [
     {
@@ -107,6 +116,7 @@ USE_I18N = True
 
 USE_TZ = True
 
+STATIC_URL = "static/"
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
 
@@ -178,5 +188,36 @@ CKEDITOR_5_CONFIGS = {
     },
     'minimal': {
         'toolbar': ['bold', 'italic', 'link'],
+    },
+}
+
+
+
+
+
+REDIS_URL = os.environ.get("REDIS_URL", "redis://redis:6379/1")
+
+CACHES = {
+    "default": {
+        "BACKEND": "django_redis.cache.RedisCache",
+        "LOCATION": REDIS_URL,
+        "TIMEOUT": 60,
+        "OPTIONS": {
+            "CLIENT_CLASS": "django_redis.client.DefaultClient",
+        },
+    }
+}
+
+CELERY_BROKER_URL = os.environ.get("CELERY_BROKER_URL", "redis://redis:6379/0")
+CELERY_RESULT_BACKEND = os.environ.get("CELERY_RESULT_BACKEND", "redis://redis:6379/0")
+CELERY_ACCEPT_CONTENT = ["json"]
+CELERY_TASK_SERIALIZER = "json"
+CELERY_RESULT_SERIALIZER = "json"
+CELERY_TIMEZONE = TIME_ZONE
+
+CELERY_BEAT_SCHEDULE = {
+    "clear-expired-cache-every-minute": {
+        "task": "core.tasks.clear_expired_cache_task",
+        "schedule": 60.0,
     },
 }
